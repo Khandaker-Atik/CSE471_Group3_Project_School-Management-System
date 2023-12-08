@@ -1,0 +1,1 @@
+<?php /**PATH C:\Users\KHAND\Desktop\SMS\resources\views/pages/teacher/menu.blade.php ENDPATH**/ ?>
