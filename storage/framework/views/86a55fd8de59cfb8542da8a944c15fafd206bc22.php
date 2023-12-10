@@ -1,0 +1,1 @@
+<?php /**PATH C:\Users\KHAND\Desktop\Github\CSE471_Group3_Project_School-Management-System\resources\views/pages/accountant/menu.blade.php ENDPATH**/ ?>

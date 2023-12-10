@@ -80,6 +80,7 @@
                                 <th>Class</th>
                                 <th>Type</th>
                                 <th>Year</th>
+                                <th>Action</th>
                             </tr>
                             </thead>
                             <tbody>

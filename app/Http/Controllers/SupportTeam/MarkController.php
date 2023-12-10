@@ -92,6 +92,50 @@ class MarkController extends Controller
         return view('pages.support_team.marks.show.index', $d);
     }
 
+    public function print_view($student_id, $exam_id, $year)
+    {
+        /* Prevent Other Students/Parents from viewing Result of others */
+        if(Auth::user()->id != $student_id && !Qs::userIsTeamSA() && !Qs::userIsMyChild($student_id, Auth::user()->id)){
+            return redirect(route('dashboard'))->with('pop_error', __('msg.denied'));
+        }
+
+        if(Mk::examIsLocked() && !Qs::userIsTeamSA()){
+            Session::put('marks_url', route('marks.show', [Qs::hash($student_id), $year]));
+
+            if(!$this->checkPinVerified($student_id)){
+                return redirect()->route('pins.enter', Qs::hash($student_id));
+            }
+        }
+
+        if(!$this->verifyStudentExamYear($student_id, $year)){
+            return $this->noStudentRecord();
+        }
+
+        $wh = ['student_id' => $student_id, 'exam_id' => $exam_id, 'year' => $year ];
+        $d['marks'] = $mks = $this->exam->getMark($wh);
+        $d['exr'] = $exr = $this->exam->getRecord($wh)->first();
+        $d['my_class'] = $mc = $this->my_class->find($exr->my_class_id);
+        $d['section_id'] = $exr->section_id;
+        $d['ex'] = $exam = $this->exam->find($exam_id);
+        $d['tex'] = 'tex'.$exam->term;
+        $d['sr'] = $sr =$this->student->getRecord(['user_id' => $student_id])->first();
+        $d['class_type'] = $this->my_class->findTypeByClass($mc->id);
+        $d['subjects'] = $this->my_class->findSubjectByClass($mc->id);
+
+        $d['ct'] = $ct = $d['class_type']->code;
+        $d['year'] = $year;
+        $d['student_id'] = $student_id;
+        $d['exam_id'] = $exam_id;
+
+        $d['skills'] = $this->exam->getSkillByClassType() ?: NULL;
+        $d['s'] = Setting::all()->flatMap(function($s){
+            return [$s->type => $s->description];
+        });
+
+        //$d['mark_type'] = Qs::getMarkType($ct);
+
+        return view('pages.support_team.marks.print.index', $d);
+    }
 
     public function selector(MarkSelector $req)
     {
@@ -163,11 +207,6 @@ class MarkController extends Controller
             /** SubTotal Grade, Remark, Cum, CumAvg**/
 
             $d['tex'.$exam->term] = $total = $tca + $exm;
-
-
-
-
-
 
             if($total > 100){
                 $d['tex'.$exam->term] = $d['t1'] = $d['t2'] = $d['t3'] = $d['t4'] = $d['tca'] = $d['exm'] = NULL;
